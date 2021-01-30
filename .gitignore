@@ -1,0 +1,9 @@
+# Python Object (compiled) code cache
+**/__pycache__/
+
+# Vim backups/swap
+*.un~
+*.swp
+
+# PyCharm project files
+.idea/
