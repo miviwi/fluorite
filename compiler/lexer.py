@@ -2,6 +2,7 @@ import rply
 
 import re
 import itertools
+import functools
 import typing
 
 
@@ -117,6 +118,14 @@ class Lexer:
     def __init__(self):
         self._lexer = Lexer.__build_lexer()
 
+    def lex(self, source: str) -> rply.lexer.LexerStream:
+        stream = self._lexer.lex(source)
+
+        toks1, toks2 = itertools.tee(itertools.chain(stream, [None]))
+        next(toks2, None)
+
+        yield from functools.reduce(Lexer.__insert_fnapply, zip(toks1, toks2), [])
+
     @classmethod
     def tokens_list(cls):
         return cls.TOKENS.keys()
@@ -138,30 +147,34 @@ class Lexer:
         return lg.build()
 
     @staticmethod
-    def __insert_fnapply(t: typing.Tuple[Token, typing.Union[Token, None]]):
+    def __insert_fnapply(toks_out: typing.List[Token],
+                         t: typing.Tuple[Token, typing.Union[Token, None]]):
         (token, lookahead) = t
+        # print(f"{len(toks_out)}: ({token}, {lookahead})")
 
         if lookahead is None:       # None is used as end of stream marker
-            yield token
+            return toks_out + [token]
 
-            raise StopIteration
+        (tok_type, lahead_type) = (token.gettokentype(), lookahead.gettokentype())
 
         tok_fnapply = Token(TokenTag.FNAPPLY, '')
+        tok_lf      = Token(TokenTag.LF, '')
 
-        if (token.gettokentype(),  lookahead.gettokentype()) == (TokenTag.ID, TokenTag.LPAREN):
+        if (tok_type, lahead_type) == (TokenTag.ID, TokenTag.LPAREN):
             token_pos, lookahead_pos = token.getsourcepos(), lookahead.getsourcepos()
 
             token_end = token_pos.idx + len(token.getstr())
 
             if token_end == lookahead_pos.idx:   # Insert a FNAPPLY when there is no space between the function name and '('
-                yield token; yield tok_fnapply
-        elif token.gettokentype() == TokenTag.ID and \
-                lookahead.gettokentype() in {
+                return toks_out + [token, tok_fnapply]
+        elif tok_type == TokenTag.ID and lahead_type in {
                     TokenTag.ID, TokenTag.ATOM, TokenTag.KW,
                     TokenTag.NUM,
-                    TokenTag.PLUS, TokenTag.MINUS,              # unary ops
+                    # TokenTag.PLUS, TokenTag.MINUS,              # unary ops
                     TokenTag.LBRACE, TokenTag.LSQRBRACKET,      # collection literals
         }:
-            yield token; yield tok_fnapply      #  ...and between two adjacent terms (no operator inbetween)
+            return toks_out + [token, tok_fnapply]   #  ...and between two adjacent terms (no operator inbetween)
+        elif tok_type == TokenTag.LF:
+            return toks_out + [tok_lf]
 
-        yield token
+        return toks_out + [token]

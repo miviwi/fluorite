@@ -3,10 +3,56 @@ import itertools
 import functools
 import typing
 
+from .fltypes import FlAtom
 
-class NoTailError(Exception):
-    def __init__(self):
-        super().__init__("Do.NoTailError: a tail expression hasn't been declared!")
+
+class sym(ast.expr):
+    __slots__ = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args=args, kwargs=kwargs)
+
+
+class Symbol(sym):
+    """ Symbol(sym symbol) """
+    __slots__ =  ('symbol', )
+
+    def __init__(self, symbol, *args, **kwargs):
+        self.symbol = symbol
+
+        super().__init__(args=args, kwargs=kwargs)
+
+    @property
+    def name(self):
+        return self.symbol
+
+    _fields = (
+        'symbol',
+    )
+
+
+class QualSymbol(sym):
+    """ QualSymbol(sym symbol, sym* module) """
+    __slots__ = ('_symbol', '_module', 'qual_name')
+    _symbol: FlAtom
+    _module: typing.List[FlAtom]
+
+    def __init__(self, *args, symbol, module, **kwargs):
+        self._symbol = symbol
+        self._module = module
+
+        mod_path = '.'.join(map(lambda atom: atom.name, module)) + '.'
+
+        self.qual_name = mod_path + self._symbol.name
+
+        super().__init__(args=args, kwargs=kwargs)
+
+    def __repr__(self):
+        return self.qual_name
+
+    _fields = sym._fields + (
+        'qual_name',
+    )
 
 
 class Match(ast.stmt):

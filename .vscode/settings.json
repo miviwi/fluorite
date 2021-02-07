@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/avril/.local/share/virtualenvs/fluorite-k4W2_KUb/bin/python"
+    "python.pythonPath": "/home/avril/.local/share/virtualenvs/fluorite-k4W2_KUb/bin/python",
+    "python.formatting.provider": "black"
 }

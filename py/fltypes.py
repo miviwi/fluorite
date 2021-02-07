@@ -23,6 +23,9 @@ class FlTerm(ast.expr):
 
         super().__init__(args=args, kwargs=kwargs)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.value})"
+
     _fields = (
         'value',
     )
@@ -39,25 +42,15 @@ class FlInteger(FlTerm):
 
 class FlAtom(FlTerm):
     """ FlAtom(atom value) """
-    __slots__ = ('module', )
+    __slots__ = ()
     value: str
-    module: typing.Tuple[str, ...]
 
-    def __init__(self, value: str, *args, module: typing.Iterable[str] = (), **kwargs):
-        self.module = tuple(module)
-
+    def __init__(self, value: str, *args, **kwargs):
         super().__init__(value=value, args=args, kwargs=kwargs)
 
     @property
     def name(self):
-        return '.'.join(self.module + ('', )) + self.value
-
-    def __repr__(self):
-        return self.name
-
-    _fields = (
-        'name',
-    )
+        return self.value
 
 
 class FlString(FlTerm):

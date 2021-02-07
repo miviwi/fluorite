@@ -12,8 +12,10 @@ FlString  = fltypes.FlString
 FlList    = fltypes.FlList
 FlTuple   = fltypes.FlTuple
 
-Match   = flexprs.Match
-Do      = flexprs.Do
+Symbol     = flexprs.Symbol
+QualSymbol = flexprs.QualSymbol
+Match      = flexprs.Match
+Do         = flexprs.Do
 
 __all__ = [
     compileunit.CompilationUnit,
@@ -24,6 +26,8 @@ __all__ = [
     fltypes.FlList,
     fltypes.FlTuple,
 
+    flexprs.Symbol,
+    flexprs.QualSymbol,
     flexprs.Match,
     flexprs.Do,
 ]

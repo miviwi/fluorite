@@ -127,11 +127,11 @@ class Parser:
 
         @pg.production(f"atom : {TokenTag.ATOM}")
         def atom_unqual(_state, p: _ProdTermsTokens):
-            return Parser.__build_qual_symbol(p[0].getstr())
+            return py.FlAtom(p[0].getstr())
 
         @pg.production(f"id : {TokenTag.ID}")
         def id_unqual(_state, p: _ProdTermsTokens):
-            return Parser.__build_qual_symbol(p[0].getstr())
+            return py.Symbol(p[0].getstr())
 
         @pg.production(f"number : {TokenTag.NUM}")
         def number(_state, p: _ProdTermsTokens):
@@ -214,7 +214,7 @@ class Parser:
             tail_item: ast.expr = p[-1]
             items_head: _ExprList = p[0] if p[0] is not p[-1] else []
 
-            print(f"list_items: tail_item={tail_item} items_head={items_head}")
+            # print(f"list_items: tail_item={tail_item} items_head={items_head}")
 
             return items_head + [tail_item]
 
@@ -289,20 +289,20 @@ class Parser:
 
         @pg.production(f"fn-id : id")
         def fn_id_unqual(_state, p: _ProdTermsTrees):
-            return typing.cast(py.FlAtom, p[0]).name
+            return typing.cast(py.Symbol, p[0])
 
         @pg.production(f"fn-id : fn-module . id")
         def fn_id_qual(_state, p: _ProdTermsTreeLists):
-            path_tail: py.FlAtom = p[-1]
-            module_path: typing.List[str] = p[0]
+            path_tail: str= p[-1].name
+            module_path: typing.List[py.FlAtom] = p[0]
 
-            return Parser.__build_qual_symbol(path_tail.name, *module_path)
+            return py.QualSymbol(symbol=py.FlAtom(path_tail), module=module_path)
 
         @pg.production(f"fn-module : fn-module . atom")
         @pg.production(f"fn-module : atom")
         def fn_module(_state, p: _ProdTermsTreeLists):
-            path_tail = typing.cast(py.FlAtom, p[-1]).name
-            path_head: typing.List[str] = p[0] if p[0] is not p[-1] else []
+            path_tail: py.FlAtom = p[-1]
+            path_head: typing.List[py.FlAtom] = p[0] if p[0] is not p[-1] else []
 
             return path_head + [path_tail]
 
@@ -429,12 +429,12 @@ class Parser:
 
         return make_node(val)
 
-    @staticmethod
-    def __build_qual_symbol(name: str, *module: typing.Iterable[str]):
-        # module = atoms[:-1] if len(atoms) > 1 else ()
-        # name = atoms[-1]
+    # @staticmethod
+    # def __build_qual_symbol(name: str):
+    #     # module = atoms[:-1] if len(atoms) > 1 else ()
+    #     # name = atoms[-1]
 
-        return py.FlAtom(name, module=module)
+    #     return py.FlAtom(name)
 
     @staticmethod
     def __is_token(val):

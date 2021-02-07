@@ -5,8 +5,9 @@ from .atom import Atom
 
 
 class Module:
-    __slots__ = ('_name', )
+    __slots__ = ('_name', '_fns')
     _name: Atom
+    _fns: typing.Mapping[int, typing.Callable]
 
     def __init__(self, name):
         self._name = name
